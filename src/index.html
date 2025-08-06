@@ -1,32 +1,193 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
-
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算器应用 - 前端版</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>计算器应用</h1>
+            <div class="header-actions">
+                <button id="importExportBtn" class="icon-button">
+                    <span class="material-icons">📤</span>
+                </button>
+                <button id="settingsBtn" class="icon-button">
+                    <span class="material-icons">⚙️</span>
+                </button>
             </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
+        </header>
+
+        <main class="app-content">
+            <div class="card item-list-card">
+                <div class="item-list-header">
+                    <h2>项目列表</h2>
+                    <button id="addItemBtn" class="button primary">添加项目</button>
+                </div>
+                <div id="itemList" class="item-list">
+                    <div class="empty-message">正在加载数据...</div>
+                </div>
+            </div>
+
+            <div class="card summary-card">
+                <h2>计算结果</h2>
+                <div class="total-container">
+                    <span class="total-label">总计:</span>
+                    <span id="totalValue" class="total-value">0.00</span>
+                </div>
             </div>
         </main>
-    </body>
+
+        <!-- 设置模态框 -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>计算设置</h2>
+                    <span class="close-btn" id="closeSettingsBtn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-tabs">
+                        <button id="formulaTabBtn" class="tab-button active">公式设置</button>
+                        <button id="coefficientTabBtn" class="tab-button">系数设置</button>
+                        <button id="passwordTabBtn" class="tab-button">密码设置</button>
+                    </div>
+                    
+                    <div id="formulaTab" class="settings-tab-content">
+                        <div class="formula-section">
+                            <h3>计算公式</h3>
+                            <p class="description">您可以使用项目名称、数学运算符和函数创建计算公式。</p>
+                            <textarea id="formulaInput" class="formula-input" placeholder="例如：项目A*项目B+项目C-3*项目D+IF(项目H被勾选,项目G,0)"></textarea>
+                            
+                            <div class="formula-help">
+                                <h4>可用函数：</h4>
+                                <ul>
+                                    <li><strong>IF(条件, 值1, 值2)</strong> - 如果条件为真，返回值1，否则返回值2</li>
+                                    <li><strong>SUM(值1, 值2, ...)</strong> - 计算所有值的总和</li>
+                                    <li><strong>AVG(值1, 值2, ...)</strong> - 计算所有值的平均值</li>
+                                    <li><strong>MIN(值1, 值2, ...)</strong> - 返回最小值</li>
+                                    <li><strong>MAX(值1, 值2, ...)</strong> - 返回最大值</li>
+                                </ul>
+                                
+                                <h4>条件表达式：</h4>
+                                <ul>
+                                    <li><strong>项目X被勾选</strong> - 检查项目X是否被选中</li>
+                                    <li><strong>项目X > 值</strong> - 检查项目X的值是否大于指定值</li>
+                                    <li><strong>项目X < 值</strong> - 检查项目X的值是否小于指定值</li>
+                                    <li><strong>项目X = 值</strong> - 检查项目X的值是否等于指定值</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="coefficientTab" class="settings-tab-content" style="display: none;">
+                        <div id="coefficientsList" class="coefficients-list">
+                            <div class="empty-message">正在加载系数设置...</div>
+                        </div>
+                    </div>
+                    
+                    <div id="passwordTab" class="settings-tab-content" style="display: none;">
+                        <div class="password-section">
+                            <h3>密码设置</h3>
+                            <p class="description">设置用于保护修改、导入导出和设置功能的密码。</p>
+                            <div class="input-group">
+                                <label for="currentPassword">当前密码：</label>
+                                <input type="password" id="currentPassword" placeholder="输入当前密码">
+                            </div>
+                            <div class="input-group">
+                                <label for="newPassword">新密码：</label>
+                                <input type="password" id="newPassword" placeholder="输入新密码">
+                            </div>
+                            <div class="input-group">
+                                <label for="confirmPassword">确认密码：</label>
+                                <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelSettingsBtn" class="button">取消</button>
+                    <button id="saveSettingsBtn" class="button primary">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 导入导出模态框 -->
+        <div id="importExportModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>导入/导出数据</h2>
+                    <span class="close-btn" id="closeImportExportBtn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p class="description">
+                        您可以导入或导出数据。导入的数据必须包含「名称」和「数值」两列。
+                    </p>
+                    <div class="import-export-container">
+                        <div class="import-section">
+                            <h3>导入数据</h3>
+                            <textarea id="importData" placeholder="请输入JSON格式数据，例如：[{\"名称\":\"项目1\",\"数值\":100},{\"名称\":\"项目2\",\"数值\":-50}]"></textarea>
+                            <button id="importBtn" class="button primary">导入</button>
+                        </div>
+                        <div class="export-section">
+                            <h3>导出数据</h3>
+                            <textarea id="exportData" readonly></textarea>
+                            <button id="exportBtn" class="button primary">导出</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="closeImportExportModalBtn" class="button">关闭</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 密码验证模态框 -->
+        <div id="passwordModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>密码验证</h2>
+                    <span class="close-btn" id="closePasswordBtn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p id="passwordPrompt" class="description">请输入密码以继续操作：</p>
+                    <div class="input-group">
+                        <input type="password" id="passwordInput" placeholder="输入密码">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelPasswordBtn" class="button">取消</button>
+                    <button id="confirmPasswordBtn" class="button primary">确认</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 添加/编辑项目模态框 -->
+        <div id="itemModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="itemModalTitle">添加项目</h2>
+                    <span class="close-btn" id="closeItemBtn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label for="itemName">项目名称：</label>
+                        <input type="text" id="itemName" placeholder="输入项目名称">
+                    </div>
+                    <div class="input-group">
+                        <label for="itemValue">项目数值：</label>
+                        <input type="number" id="itemValue" placeholder="输入项目数值" step="0.01">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelItemBtn" class="button">取消</button>
+                    <button id="saveItemBtn" class="button primary">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
 </html>
